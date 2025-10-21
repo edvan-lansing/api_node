@@ -29,44 +29,6 @@ npx prisma generate
 node --watch server.js
 ```
 
-## Rotas
-
-### Criar usuário
-
-`POST /users`
-
-```json
-{
-  "name": "lucas",
-  "birthDate": "15-08-2009",
-  "cpf": "12345678900",
-  "nickname": "lucasinho",
-  "gender": "Masculino",
-  "email": "lucas@email.com",
-  "telephone": "11999999999",
-  "state": "SP",
-  "country": "Brasil"
-}
-```
-
-### Listar usuários
-
-`GET /users`
-
-### Editar usuário
-
-`PUT /users/:id`
-
-### Remover usuário
-
-`DELETE /users/:id`
-
-## Observações
-
-- O campo `birthDate` deve ser enviado no formato `dd-MM-yyyy`.
-- Os campos `cpf` e `email` devem ser únicos.
-- O campo `gender` aceita apenas: `Masculino`, `Feminino` ou `Outros`.
-
 ---
 ```# API de Usuários
 
