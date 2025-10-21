@@ -1,136 +1,119 @@
-# api_node
-
 # API de Usuários
 
-Este projeto é uma API REST para cadastro, listagem, edição e remoção de usuários, construída com Node.js, Express e Prisma.
+API REST para cadastro, listagem, edição e remoção de usuários — Node.js, Express e MySQL (RDS). Inclui scripts de criação de BD/tabela e integração com Prisma opcional.
 
 ## Pré-requisitos
-
-- Node.js
+- Node.js (>=16)
 - npm
-- Banco de dados configurado (ex: MongoDB Atlas ou PostgreSQL)
-- Prisma configurado
+- Conta AWS (RDS) ou MySQL acessível
+- (Opcional) Prisma se for usar migrations
+
+## Estrutura principal
+- server.js — rotas REST
+- db.js — pool MySQL (mysql2)
+- create-db.js — cria database no RDS via script Node
+- create-table.js — cria tabela `users`
+- test-db.js / show-rows.js — scripts de teste
+- prisma/schema.prisma — (opcional) esquema Prisma
+
+## Variáveis de ambiente (.env)
+Não compartilhe este arquivo. Exemplo em `.env.example`.
+
+Chaves usadas:
+```
+DB_HOST=your-rds-endpoint
+DB_USER=your-db-user
+DB_PASS=your-db-password
+DB_NAME=your-db-name
+DB_PORT=3306
+PORT=3000
+
+# Prisma (opcional)
+DATABASE_URL="mysql://USER:PASSWORD@HOST:3306/DB_NAME"
+```
 
 ## Instalação
-
 ```bash
 npm install
+# se usar Prisma:
+npm install -D prisma
+npm install @prisma/client mysql2 dotenv
 npx prisma generate
 ```
 
-## Configuração
+## Criar database / tabela (se necessário)
+- Criar DB (via script Node, sem cliente MySQL):
+```bash
+node create-db.js
+```
+- Criar tabela `users`:
+```bash
+node create-table.js
+```
 
-1. Configure o arquivo `.env` com a string de conexão do seu banco de dados.
-2. Ajuste o arquivo `prisma/schema.prisma` conforme seu banco.
-
-## Executando o projeto
-
+## Executando a API
 ```bash
 node --watch server.js
+# ou
+node server.js
 ```
+A API ficará disponível em `http://localhost:3000`.
 
-## Rotas
+## Rotas principais
+- GET /health
+- GET /users
+- GET /users/:id
+- POST /users
+  - Exemplo payload (JSON):
+  ```json
+  {
+    "name": "Lucas",
+    "birthDate": "15-08-2009",
+    "cpf": "12345678901",
+    "nickname": "lucasinho",
+    "gender": "Masculino",
+    "email": "lucas@example.com",
+    "telephone": "11999999999",
+    "state": "SP",
+    "country": "Brasil"
+  }
+  ```
+  - `birthDate` em formato `dd-MM-yyyy` (o servidor converte para ISO).
+  - `gender` aceita: `Masculino`, `Feminino`, `Outros`.
+  - `cpf` e `email` são únicos.
+- PUT /users/:id
+- DELETE /users/:id
 
-### Criar usuário
-
-`POST /users`
-
-```json
-{
-  "name": "lucas",
-  "birthDate": "15-08-2009",
-  "cpf": "12345678900",
-  "nickname": "lucasinho",
-  "gender": "Masculino",
-  "email": "lucas@email.com",
-  "telephone": "11999999999",
-  "state": "SP",
-  "country": "Brasil"
-}
-```
-
-### Listar usuários
-
-`GET /users`
-
-### Editar usuário
-
-`PUT /users/:id`
-
-### Remover usuário
-
-`DELETE /users/:id`
-
-## Observações
-
-- O campo `birthDate` deve ser enviado no formato `dd-MM-yyyy`.
-- Os campos `cpf` e `email` devem ser únicos.
-- O campo `gender` aceita apenas: `Masculino`, `Feminino` ou `Outros`.
-
----
-```# API de Usuários
-
-Este projeto é uma API REST para cadastro, listagem, edição e remoção de usuários, construída com Node.js, Express e Prisma.
-
-## Pré-requisitos
-
-- Node.js
-- npm
-- Banco de dados configurado (ex: MongoDB Atlas ou PostgreSQL)
-- Prisma configurado
-
-## Instalação
-
+## Testes rápidos
+- Curl:
 ```bash
-npm install
-npx prisma generate
+curl http://localhost:3000/health
+curl http://localhost:3000/users
 ```
+- Use Thunder Client / Postman para testar endpoints POST/PUT com `Content-Type: application/json`.
 
-## Configuração
+## Git / segurança
+- Adicione `.env` no `.gitignore` (já configurado).
+- Crie `.env.example` com placeholders para compartilhar configuração sem segredos.
 
-1. Configure o arquivo `.env` com a string de conexão do seu banco de dados.
-2. Ajuste o arquivo `prisma/schema.prisma` conforme seu banco.
+## Prisma (opcional)
+- Se usar Prisma com MySQL:
+  - Ajuste `prisma/schema.prisma` com `provider = "mysql"`.
+  - Execute:
+  ```bash
+  npx prisma generate
+  npx prisma migrate dev --name init
+  ```
+  - Se usar MongoDB, altere datasource e adapte IDs.
 
-## Executando o projeto
+## Troubleshooting
+- Erro `Access denied` → verificar usuário/senha e Security Group do RDS (inbound 3306 para seu IP).
+- Erro `Unknown database` → criar DB (`create-db.js`) ou corrigir `DB_NAME`.
+- Erro `ER_DUP_ENTRY` → CPF/email duplicado.
+- Ver logs do servidor (terminal) ao testar endpoints.
 
-```bash
-node --watch server.js
-```
-
-## Rotas
-
-### Criar usuário
-
-`POST /users`
-
-```json
-{
-  "name": "lucas",
-  "birthDate": "15-08-2009",
-  "cpf": "12345678900",
-  "nickname": "lucasinho",
-  "gender": "Masculino",
-  "email": "lucas@email.com",
-  "telephone": "11999999999",
-  "state": "SP",
-  "country": "Brasil"
-}
-```
-
-### Listar usuários
-
-`GET /users`
-
-### Editar usuário
-
-`PUT /users/:id`
-
-### Remover usuário
-
-`DELETE /users/:id`
-
-## Observações
-
-- O campo `birthDate` deve ser enviado no formato `dd-MM-yyyy`.
-- Os campos `cpf` e `email` devem ser únicos.
-- O campo `gender` aceita apenas: `Masculino`, `Feminino
+## Próximos passos recomendados
+- Criar `.env.example`
+- Testes automatizados (jest / supertest)
+- Documentação OpenAPI / Postman collection
+- Em produção: restringir Security Group, habilitar backups e monitoramento RDS
